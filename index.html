@@ -1,382 +1,1087 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard e Inventario de Cómputo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ventorie | Dashboard</title>
     <style>
+        /* Variables y estilos globales del dashboard. */
+
+        :root {
+            --ink: #151515;
+            --muted: #8b8d91;
+            --line: #ecece9;
+            --panel: #fff;
+            --lime: #d9ef51;
+            --lime-dark: #bfd735;
+            --sidebar: #0b0d0b;
+            --canvas: #f3f3f1;
+            --shadow: 0 17px 44px rgba(31, 34, 27, .08);
+        }
+
         * {
             box-sizing: border-box;
-            font-family: 'Segoe UI', sans-serif;
         }
 
         body {
-            background-color: #f0f2f5;
             margin: 0;
-            padding: 20px;
+            color: var(--ink);
+            background: var(--canvas);
+            font: 11px/1.4 "Segoe UI", Arial, sans-serif;
         }
 
-        .dashboard-layout {
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+            cursor: pointer;
+        }
+
+        .page {
+            min-height: 100vh;
+            padding: 50px 7.8% 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page::before,
+        .page::after {
+            content: "";
+            position: absolute;
+            inset: -30% auto auto 30%;
+            width: 240px;
+            height: 1200px;
+            transform: rotate(-33deg);
+            background: rgba(255, 255, 255, .3);
+            pointer-events: none;
+        }
+
+        .page::after {
+            left: 57%;
+            opacity: .5;
+        }
+
+        .topbar {
+            height: 70px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-pill {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            color: white;
+            background: rgba(255, 255, 255, .28);
+            border-radius: 24px;
+            padding: 9px 17px 9px 11px;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: .5px;
+        }
+
+        .brand-mark {
+            width: 24px;
+            height: 24px;
             display: grid;
-            grid-template-columns: 380px 1fr;
-            gap: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
+            place-items: center;
+            border-radius: 50%;
+            background: #fff;
+            color: #e6e8e5;
+            font-size: 18px;
         }
 
-        @media (max-width: 900px) {
-            .dashboard-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Estilos del Formulario */
-        .panel-form {
+        .figma {
+            width: 40px;
+            height: 40px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            height: fit-content;
+            font-size: 18px;
+            letter-spacing: -5px;
+            box-shadow: 0 3px 10px #d5d6d3;
         }
 
-        .form-group {
+        .figma span:nth-child(1) {
+            color: #f24e1e
+        }
+
+        .figma span:nth-child(2) {
+            color: #a259ff
+        }
+
+        .figma span:nth-child(3) {
+            color: #1abcfe
+        }
+
+        .figma span:nth-child(4) {
+            color: #0acf83
+        }
+
+        .figma span:nth-child(5) {
+            color: #ff7262
+        }
+
+        .shell {
+            display: grid;
+            grid-template-columns: 130px 1fr;
+            max-width: 1050px;
+            min-height: 730px;
+            margin: 0 auto;
+            background: #f1f1f0;
+            position: relative;
+            z-index: 1;
+            box-shadow: var(--shadow);
+        }
+
+        aside {
+            background: var(--sidebar);
+            color: #eee;
+            padding: 21px 17px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--lime);
+            font-weight: 700;
+            font-size: 12px;
+            margin: 0 0 34px;
+        }
+
+        .logo-icon {
+            color: var(--lime);
+            font-size: 18px;
+        }
+
+        .nav-title {
+            margin: 0 0 9px;
+            color: #aaa;
+            font-size: 7px;
+            letter-spacing: 1.1px;
+        }
+
+        nav {
+            margin-bottom: 23px;
+        }
+
+        nav button {
+            width: 100%;
+            padding: 8px 8px;
+            text-align: left;
+            color: #d8d8d8;
+            background: transparent;
+            border-radius: 9px;
+            font-size: 10px;
+        }
+
+        nav button:hover,
+        nav button.active {
+            background: #303130;
+            color: #fff;
+        }
+
+        nav button span {
+            width: 16px;
+            display: inline-block;
+            font-size: 12px;
+        }
+
+        .content {
+            padding: 14px 15px 22px;
+            min-width: 0;
+        }
+
+        .content-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 17px;
+        }
+
+        .head-actions {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .search {
+            width: 205px;
+            border: 0;
+            outline: 0;
+            background: white;
+            border-radius: 8px;
+            padding: 10px 12px 10px 32px;
+            color: #777;
+            background-image: radial-gradient(circle at 13px 14px, transparent 4px, #c8c9c8 4px, #c8c9c8 5px, transparent 6px);
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.15;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .profile small {
+            color: #929292;
+            font-weight: 400;
+        }
+
+        .avatar {
+            width: 31px;
+            height: 31px;
+            border-radius: 50%;
+            background: #d8ad80;
+            display: grid;
+            place-items: center;
+            font-size: 18px;
+            border: 2px solid #d9ef51;
+        }
+
+        .bell {
+            width: 32px;
+            height: 32px;
+            background: #fff;
+            border-radius: 8px;
+            position: relative;
+            font-size: 16px;
+        }
+
+        .bell::after {
+            content: "";
+            position: absolute;
+            right: 7px;
+            top: 7px;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #ef5e67;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 11px;
             margin-bottom: 12px;
         }
 
-        .form-group label {
+        .panel {
+            background: var(--panel);
+            border-radius: 12px;
+            padding: 13px;
+            min-width: 0;
+        }
+
+        .metric {
+            height: 72px;
+            position: relative;
+        }
+
+        .metric label {
+            font-size: 8px;
+        }
+
+        .dots {
+            position: absolute;
+            right: 0;
+            top: 0;
+            color: #aaa;
+            letter-spacing: 2px;
+        }
+
+        .metric strong {
             display: block;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 8px 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .btn-submit {
-            width: 100%;
-            background-color: #0066cc;
-            color: white;
-            border: none;
-            padding: 10px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
+            font-size: 19px;
             margin-top: 10px;
         }
 
-        .btn-submit:disabled {
-            background-color: #888;
+        .delta {
+            position: absolute;
+            right: 0;
+            bottom: 12px;
+            font-size: 7px;
+            color: #b9c83f;
+            background: #f2f8cb;
+            border-radius: 5px;
+            padding: 2px 4px;
         }
 
-        /* Estilos de la Galería / Dashboard */
-        .panel-inventory {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        .delta.down {
+            color: #ed777b;
+            background: #fde3e0;
         }
 
-        .inventory-header {
+        .metric small {
+            position: absolute;
+            right: 0;
+            bottom: 2px;
+            font-size: 7px;
+            color: #aaa;
+        }
+
+        .grid-main {
+            display: grid;
+            grid-template-columns: 1fr 1fr 195px;
+            gap: 12px;
+        }
+
+        .wide {
+            grid-column: span 1;
+        }
+
+        .traffic {
+            grid-column: 3;
+            grid-row: span 2;
+        }
+
+        .panel-title {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            font-weight: 700;
+            font-size: 11px;
+            margin-bottom: 10px;
         }
 
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 15px;
+        .panel-title select {
+            border: 0;
+            color: #aaa;
+            background: #fff;
+            font-size: 9px;
+            outline: 0;
         }
 
-        .card {
-            border: 1px solid #e1e4e8;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #fafafa;
-            transition: transform 0.2s;
+        .profit {
+            height: 190px;
         }
 
-        .card:hover {
-            transform: translateY(-3px);
-        }
-
-        .card-img {
-            width: 100%;
-            height: 140px;
-            object-fit: cover;
-            background-color: #e9ecef;
+        .profit-body {
             display: flex;
             align-items: center;
-            justify-content: center;
-            color: #6c757d;
-            font-size: 12px;
+            gap: 10px;
         }
 
-        .card-body {
-            padding: 12px;
+        .donut {
+            width: 114px;
+            height: 114px;
+            border-radius: 50%;
+            background: conic-gradient(#111 0 40%, #d9ef51 40% 56%, #edf7a9 56% 76%, #f5f9d8 76% 86%, #e9e9e7 86%);
+            position: relative;
+            flex: none;
         }
 
-        .card-title {
-            font-weight: bold;
-            font-size: 15px;
-            margin-bottom: 4px;
-            color: #1a1a1a;
+        .donut::after {
+            content: "";
+            position: absolute;
+            inset: 22px;
+            background: #fff;
+            border-radius: 50%;
         }
 
-        .card-subtitle {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 8px;
+        .legend {
+            display: grid;
+            gap: 6px;
+            flex: 1;
+            font-size: 8px;
         }
 
-        .badge {
+        .legend div {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            justify-content: space-between;
+        }
+
+        .legend i {
+            width: 6px;
+            height: 6px;
+            border-radius: 1px;
+            background: var(--lime);
             display: inline-block;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
         }
 
-        .badge-Operativo {
-            background-color: #d4edda;
-            color: #fffff;
+        .legend b {
+            margin-left: auto;
+            font-weight: 500;
         }
 
-        .badge-Baja {
-            background-color: red;
-            color: #fffff;
+        .chart-panel {
+            height: 190px;
         }
 
-        .badge-Obsoleto {
-            background-color: #ffd900;
-            color: #fffff;
+        .chart-value {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 14px 0 -4px;
         }
 
-        .badge-Asignado {
-            background-color: #85e617;
-            color: #fffff;
+        .chart-value small {
+            font-size: 7px;
+            color: #aaa;
+            font-weight: 400;
         }
 
-        .card-detail {
+        .line-chart {
+            width: 100%;
+            height: 103px;
+        }
+
+        .line-chart path {
+            fill: none;
+            stroke: var(--lime-dark);
+            stroke-width: 2;
+        }
+
+        .line-chart .area {
+            fill: url(#fade);
+            stroke: none;
+        }
+
+        .chart-labels {
+            display: flex;
+            justify-content: space-between;
+            color: #aaa;
+            font-size: 7px;
+            margin-top: -3px;
+        }
+
+        .traffic {
+            height: 383px;
+        }
+
+        .traffic-row {
+            height: 67px;
+            border-bottom: 1px solid #f0f0ee;
+            padding-top: 3px;
+            position: relative;
+        }
+
+        .traffic-row:last-child {
+            border: 0
+        }
+
+        .traffic-row b {
+            display: block;
+            font-size: 10px
+        }
+
+        .traffic-row strong {
+            display: block;
+            font-size: 17px;
+            margin-top: 3px
+        }
+
+        .traffic-row small {
+            color: #aaa;
+            font-size: 7px
+        }
+
+        .spark {
+            position: absolute;
+            right: 0;
+            top: 13px;
+            width: 73px;
+            height: 32px
+        }
+
+        .spark path {
+            fill: none;
+            stroke: #c3d833;
+            stroke-width: 2
+        }
+
+        .spark .fill {
+            fill: #f5f9dc;
+            stroke: none
+        }
+
+        .spark.red path {
+            stroke: #ed5c66
+        }
+
+        .spark.red .fill {
+            fill: #fde9e6
+        }
+
+        .lower {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .stock,
+        .restock {
+            height: 208px
+        }
+
+        .stock-total {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 9px
+        }
+
+        .stock-total small {
+            font-size: 8px;
+            color: #aaa;
+            font-weight: 400
+        }
+
+        .stock-line {
+            margin: 9px 0
+        }
+
+        .stock-line header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 8px
+        }
+
+        .stock-line header span {
+            color: #777
+        }
+
+        .bar {
+            height: 4px;
+            background: #ecece9;
+            margin-top: 5px
+        }
+
+        .bar i {
+            display: block;
+            height: 100%;
+            background: var(--lime);
+            width: 75%
+        }
+
+        .restock-row {
+            display: grid;
+            grid-template-columns: 26px 1fr 28px 55px;
+            align-items: center;
+            gap: 5px;
+            height: 34px;
+            border-bottom: 1px solid #f4f4f2;
+            font-size: 8px
+        }
+
+        .restock-row:last-child {
+            border: 0
+        }
+
+        .thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 5px;
+            background: #eee;
+            display: grid;
+            place-items: center;
+            font-size: 14px
+        }
+
+        .restock-row b {
+            text-align: right
+        }
+
+        .restock-row time {
+            font-size: 7px;
+            color: #777;
+            text-align: right
+        }
+
+        .activity {
+            height: 210px;
+            margin-top: 12px
+        }
+
+        .activity .event {
+            display: flex;
+            gap: 8px;
+            margin: 12px 0;
+            font-size: 8px;
+            line-height: 1.25
+        }
+
+        .event .avatar {
+            width: 20px;
+            height: 20px;
             font-size: 12px;
-            color: #444;
-            margin-top: 6px;
+            flex: none
+        }
+
+        .event small {
+            color: #888;
+            display: block
+        }
+
+        .product-table {
+            margin-top: 12px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 12px;
+            grid-column: span 2
+        }
+
+        .table-tools {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px
+        }
+
+        .table-tools .search {
+            height: 27px;
+            width: 150px;
+            background-color: #f7f7f6;
+            padding-top: 6px;
+            padding-bottom: 6px;
+            background-position-y: -1px
+        }
+
+        .filters {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            color: #aaa;
+            font-size: 8px
+        }
+
+        .filters select {
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 5px;
+            color: #aaa;
+            background: #fff
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8px
+        }
+
+        .data-table th {
+            text-align: left;
+            color: #888;
+            font-weight: 400;
+            padding: 8px;
+            border-bottom: 1px solid #eee
+        }
+
+        .data-table td {
+            padding: 8px;
+            border-bottom: 1px solid #f2f2f0
+        }
+
+        .data-table tr:last-child td {
+            border: 0
+        }
+
+        .status {
+            color: #adc323;
+            background: #f1f8cb;
+            border-radius: 5px;
+            padding: 3px 5px
+        }
+
+        .status.low {
+            color: #df8f49;
+            background: #fff1d6
+        }
+
+        .empty {
+            display: none;
+            text-align: center;
+            color: #aaa;
+            padding: 20px
+        }
+
+        /* En tablet y movil las columnas se reorganizan para conservar la legibilidad. */
+        @media (max-width: 900px) {
+            .page {
+                padding: 25px 3%
+            }
+
+            .grid-main {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .traffic {
+                grid-column: span 2;
+                grid-row: auto
+            }
+
+            .lower {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .activity {
+                grid-column: span 2
+            }
+        }
+
+        @media (max-width: 650px) {
+            .topbar {
+                height: 60px
+            }
+
+            .brand-pill {
+                font-size: 14px
+            }
+
+            .shell {
+                display: block
+            }
+
+            .shell aside {
+                padding: 10px 12px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                overflow: auto
+            }
+
+            .logo {
+                margin: 0 auto 0 0;
+                white-space: nowrap
+            }
+
+            nav {
+                display: flex;
+                margin: 0;
+                gap: 4px
+            }
+
+            nav .nav-title {
+                display: none
+            }
+
+            nav button {
+                width: auto;
+                white-space: nowrap;
+                padding: 7px
+            }
+
+            .content {
+                padding: 12px
+            }
+
+            .content-head {
+                align-items: flex-start;
+                gap: 8px;
+                flex-wrap: wrap
+            }
+
+            .head-actions {
+                width: 100%;
+                justify-content: space-between
+            }
+
+            .search {
+                width: calc(100% - 80px)
+            }
+
+            .metrics {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .grid-main,
+            .lower {
+                grid-template-columns: 1fr
+            }
+
+            .traffic,
+            .activity,
+            .product-table {
+                grid-column: auto
+            }
+
+            .profit,
+            .chart-panel,
+            .traffic,
+            .stock,
+            .restock,
+            .activity {
+                height: auto;
+                min-height: 180px
+            }
+
+            .profit-body {
+                justify-content: center
+            }
+
+            .table-tools {
+                align-items: flex-start;
+                gap: 8px;
+                flex-direction: column
+            }
+
+            .data-table {
+                min-width: 520px
+            }
+
+            .product-table {
+                overflow: auto
+            }
         }
     </style>
 </head>
 
 <body>
-
-    <div class="dashboard-layout">
-        <!-- Panel Izquierdo: Formulario -->
-        <div class="panel-form">
-            <h3>Registrar Nuevo Equipo</h3>
-            <form id="equipmentForm">
-                <div class="form-group">
-                    <label>ID Equipo / Activo</label>
-                    <input type="text" id="id_equipo" required placeholder="Ej. EQ-2026-01">
-                </div>
-                <div class="form-group">
-                    <label>Tipo de Equipo</label>
-                    <select id="tipo_equipo" required>
-                        <option value="Laptop">Laptop</option>
-                        <option value="Desktop">Desktop</option>
-                        <option value="Monitor">Monitor</option>
-                        <option value="Servidor">Servidor</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Marca y Modelo</label>
-                    <input type="text" id="marca_modelo" required placeholder="Ej. Dell XPS 13">
-                </div>
-                <div class="form-group">
-                    <label>Número de Serie</label>
-                    <input type="text" id="numero_serie" required placeholder="Ej. SN-98765">
-                </div>
-                <div class="form-group">
-                    <label>Estado</label>
-                    <select id="estado" required>
-                        <option value="Operativo">Operativo</option>
-                        <option value="Asignado">Asignado</option>
-                        <option value="Baja">Baja</option>
-                        <option value="Obsoleto">Obsoleto</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Responsable</label>
-                    <input type="text" id="responsable" placeholder="Ej. Carlos Mendoza">
-                </div>
-                <div class="form-group">
-                    <label>Ubicación</label>
-                    <input type="text" id="ubicacion" placeholder="Ej. Almacén Central">
-                </div>
-                <div class="form-group">
-                    <label>Fotografía del Equipo</label>
-                    <input type="file" id="foto" accept="image/*">
-                </div>
-                <button type="submit" class="btn-submit" id="btnSubmit">Guardar Equipo</button>
-            </form>
-        </div>
-
-        <!-- Panel Derecho: Galería e Inventario -->
-        <div class="panel-inventory">
-            <div class="inventory-header">
-                <h3>Inventario Registrado (<span id="totalCount">0</span>)</h3>
-                <button onclick="loadInventory()" style="padding: 6px 12px; cursor: pointer;">🔄 Actualizar</button>
+    <div class="page">
+        <header class="topbar">
+            <div class="brand-pill"><span class="brand-mark">◐</span> ADMIN DASHBOARD</div>
+            <div class="figma" aria-label="Marca"><span>●</span><span>●</span><span>●</span><span>●</span><span>●</span>
             </div>
-            <div class="cards-grid" id="inventoryGrid">
-                <p>Cargando datos del inventario...</p>
-            </div>
+            <!-- Cabecera exterior que enmarca el area de trabajo. -->
+        </header>
+        <div class="shell">
+            <!-- Shell principal: navegacion fija a la izquierda y contenido modular. -->
+            <aside>
+                <div class="logo"><span class="logo-icon">▦</span> Ventorie</div>
+                <nav>
+                    <p class="nav-title">DISCOVER</p><button class="active" data-view="Dashboard"><span>▦</span>
+                        Dashboard</button><button data-view="Stores"><span>▣</span> Stores</button>
+                </nav>
+                <nav>
+                    <p class="nav-title">INVENTORY</p><button data-view="Products"><span>◇</span>
+                        Products</button><button data-view="Category"><span>▦</span> Category</button><button
+                        data-view="Suppliers"><span>♧</span> Suppliers</button><button
+                        data-view="Billing"><span>▤</span> Billing</button><button data-view="Orders"><span>▧</span>
+                        Orders</button><button data-view="Delivery"><span>▱</span> Delivery</button><button
+                        data-view="Report"><span>▥</span> Report</button>
+                </nav>
+                <nav>
+                    <p class="nav-title">SETTINGS</p><button data-view="Settings"><span>⚙</span>
+                        Settings</button><button data-view="Help"><span>?</span> Help</button><button
+                        data-view="Logout"><span>↪</span> Logout</button>
+                </nav>
+            </aside>
+            <main class="content">
+                <div class="content-head">
+                    <h1 id="view-title">Dashboard</h1>
+                    <div class="head-actions"><input class="search" id="global-search"
+                            placeholder="Search item, order, etc">
+                        <div class="profile"><span class="avatar">👩🏻</span><span>Abram Workman<small>Super
+                                    Admin</small></span><span>⌄</span></div><button class="bell"
+                            aria-label="Notificaciones">♧</button>
+                    </div>
+                </div>
+                <section class="metrics">
+                    <article class="panel metric"><label>Total Products</label><span
+                            class="dots">···</span><strong>4,892</strong><span class="delta">↗ 2.4%</span><small>from
+                            last week</small></article>
+                    <article class="panel metric"><label>Available Stock</label><span
+                            class="dots">···</span><strong>2,137</strong><span class="delta down">↘
+                            4.2%</span><small>from last week</small></article>
+                    <article class="panel metric"><label>Low Stock</label><span
+                            class="dots">···</span><strong>1,952</strong><span class="delta">↗ 1.8%</span><small>from
+                            last week</small></article>
+                    <article class="panel metric"><label>Out of Stock</label><span
+                            class="dots">···</span><strong>803</strong><span class="delta down">↘ 4.9%</span><small>from
+                            last week</small></article>
+                </section>
+                <div class="grid-main">
+                    <article class="panel profit">
+                        <div class="panel-title">Profit by Category <select>
+                                <option>This Year⌄</option>
+                            </select></div>
+                        <div class="profit-body">
+                            <div class="donut"></div>
+                            <div class="legend">
+                                <div><i></i>Women's Clothing (40%) <b>$400,000</b></div>
+                                <div><i style="background:#e5f486"></i>Accessories (25%) <b>$250,000</b></div>
+                                <div><i style="background:#eff8ac"></i>Men's Clothing (20%) <b>$200,000</b></div>
+                                <div><i style="background:#f5f9d5"></i>Footwear (10%) <b>$100,000</b></div>
+                                <div><i style="background:#dededb"></i>Children's Clothing (5%) <b>$50,000</b></div>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="panel chart-panel">
+                        <div class="panel-title">Order Summary <select>
+                                <option>This Week⌄</option>
+                            </select></div>
+                        <div class="chart-value">$8,870 <small>Total Profit</small></div><svg class="line-chart"
+                            viewBox="0 0 280 105" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="fade" x1="0" x2="0" y1="0" y2="1">
+                                    <stop stop-color="#e6f58b" stop-opacity=".65" />
+                                    <stop offset="1" stop-color="#fff" stop-opacity="0" />
+                                </linearGradient>
+                            </defs>
+                            <path class="area"
+                                d="M0 78 C22 57,34 91,52 72 S80 57,99 76 S112 30,134 48 S146 97,162 69 S181 65,193 75 S215 25,235 46 S252 19,280 43 L280 105 L0 105Z" />
+                            <path
+                                d="M0 78 C22 57,34 91,52 72 S80 57,99 76 S112 30,134 48 S146 97,162 69 S181 65,193 75 S215 25,235 46 S252 19,280 43" />
+                        </svg>
+                        <div class="chart-labels">
+                            <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                        </div>
+                    </article>
+                    <article class="panel traffic">
+                        <div class="panel-title">Traffic Source <span class="dots">···</span></div>
+                        <div class="traffic-row"><b>Amazon</b><strong>27%</strong><small>Last week: 26%</small><svg
+                                class="spark" viewBox="0 0 80 35">
+                                <path class="fill" d="M0 29 Q20 7 34 20 T58 17 T80 4 L80 35 L0 35Z" />
+                                <path d="M0 29 Q20 7 34 20 T58 17 T80 4" />
+                            </svg></div>
+                        <div class="traffic-row"><b>Ebay</b><strong>23%</strong><small>Last week: 25%</small><svg
+                                class="spark red" viewBox="0 0 80 35">
+                                <path class="fill" d="M0 4 Q13 30 28 18 T55 19 T80 31 L80 35 L0 35Z" />
+                                <path d="M0 4 Q13 30 28 18 T55 19 T80 31" />
+                            </svg></div>
+                        <div class="traffic-row"><b>Aliexpress</b><strong>18%</strong><small>Last week: 16%</small><svg
+                                class="spark" viewBox="0 0 80 35">
+                                <path class="fill" d="M0 10 L80 10 L80 35 L0 35Z" />
+                                <path d="M0 10 L80 10" />
+                            </svg></div>
+                        <div class="traffic-row"><b>Etsy</b><strong>10%</strong><small>Last week: 8%</small><svg
+                                class="spark" viewBox="0 0 80 35">
+                                <path class="fill" d="M0 28 Q20 6 34 20 T58 17 T80 4 L80 35 L0 35Z" />
+                                <path d="M0 28 Q20 6 34 20 T58 17 T80 4" />
+                            </svg></div>
+                        <div class="traffic-row"><b>Walmart</b><strong>8%</strong><small>Last week: 11%</small><svg
+                                class="spark red" viewBox="0 0 80 35">
+                                <path class="fill" d="M0 4 Q13 30 28 18 T55 19 T80 31 L80 35 L0 35Z" />
+                                <path d="M0 4 Q13 30 28 18 T55 19 T80 31" />
+                            </svg></div>
+                    </article>
+                </div>
+                <div class="lower">
+                    <article class="panel stock">
+                        <div class="panel-title">Stock Level <select>
+                                <option>Fashion⌄</option>
+                            </select></div>
+                        <div class="stock-total">225 <small>/370 &nbsp; Total Stock</small></div>
+                        <div class="stock-line">
+                            <header>Silk Blend Summer Dress <span>75 of 110 remaining</span></header>
+                            <div class="bar"><i style="width:68%"></i></div>
+                        </div>
+                        <div class="stock-line">
+                            <header>High-Waist Denim Jeans <span>50 of 80 remaining</span></header>
+                            <div class="bar"><i style="width:50%"></i></div>
+                        </div>
+                        <div class="stock-line">
+                            <header>Women's Wool Cardigan <span>40 of 80 remaining</span></header>
+                            <div class="bar"><i style="width:50%"></i></div>
+                        </div>
+                        <div class="stock-line">
+                            <header>Kids' Graphic Sweatshirt <span>60 of 100 remaining</span></header>
+                            <div class="bar"><i style="width:60%"></i></div>
+                        </div>
+                    </article>
+                    <article class="panel restock">
+                        <div class="panel-title">Upcoming Restock <select>
+                                <option>View All (38)</option>
+                            </select></div>
+                        <div class="restock-row"><span class="thumb">👢</span><span>Waterproof Ankle Boots</span><b>50
+                                Pcs</b><time>April 25, 2029</time></div>
+                        <div class="restock-row"><span class="thumb">👜</span><span>Vegan Leather Tote Bag</span><b>40
+                                Pcs</b><time>April 30, 2029</time></div>
+                        <div class="restock-row"><span class="thumb">👟</span><span>Men's Running Sneakers</span><b>30
+                                Pcs</b><time>May 5, 2029</time></div>
+                        <div class="restock-row"><span class="thumb">⌚</span><span>Luxury Watch Collection</span><b>20
+                                Pcs</b><time>May 10, 2029</time></div>
+                        <div class="restock-row"><span class="thumb">👝</span><span>Men's Leather Wallet</span><b>60
+                                Pcs</b><time>May 15, 2029</time></div>
+                    </article>
+                </div>
+                <article class="panel activity">
+                    <div class="panel-title">Recent Activity <span class="dots">···</span></div><small>Today</small>
+                    <div class="event"><span class="avatar">👩🏻</span><span><b>Mario</b> processed a return for a
+                            T-Shirt, adjusting the inventory.<small>8:45 PM</small></span></div>
+                    <div class="event"><span class="avatar">👩🏽</span><span><b>Emily Chen</b> updated High-Waist Denim
+                            Jeans quantity for sales/returns.<small>2:30 PM</small></span></div>
+                    <div class="event"><span class="avatar">👩🏻</span><span><b>John Kramer</b> added Men's Summer
+                            Jacket to inventory for upcoming season.<small>11:05 AM</small></span></div>
+                </article>
+                <article class="product-table">
+                    <div class="table-tools">
+                        <div class="panel-title" style="margin:0">Product</div><input class="search" id="table-search"
+                            placeholder="Search product, etc">
+                        <div class="filters">Sort by: <select>
+                                <option>Best Seller⌄</option>
+                            </select><select>
+                                <option>All Categories⌄</option>
+                            </select></div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Product ID ↕</th>
+                                <th>Product Name ↕</th>
+                                <th>Price ↕</th>
+                                <th>Qty ↕</th>
+                                <th>Status ↕</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="product-list">
+                            <tr>
+                                <td>👗</td>
+                                <td>#PRD-001</td>
+                                <td>Silk Blend Summer Dress</td>
+                                <td>$120.00</td>
+                                <td>75</td>
+                                <td><span class="status">In Stock</span></td>
+                                <td>•••</td>
+                            </tr>
+                            <tr>
+                                <td>👖</td>
+                                <td>#PRD-002</td>
+                                <td>High-Waist Denim Jeans</td>
+                                <td>$85.00</td>
+                                <td>50</td>
+                                <td><span class="status low">Low Stock</span></td>
+                                <td>•••</td>
+                            </tr>
+                            <tr>
+                                <td>🧥</td>
+                                <td>#PRD-003</td>
+                                <td>Women's Wool Cardigan</td>
+                                <td>$95.00</td>
+                                <td>40</td>
+                                <td><span class="status low">Low Stock</span></td>
+                                <td>•••</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="empty" id="empty">No products found</div>
+                </article>
+            </main>
         </div>
     </div>
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxAXufQXcf8Bp75suzkec2a7NfsSJOkoaSKg-LJJZ6cwnPCnxVRUrLH1GxyEMtMDZ09XQ/exec";
+        // Navegacion local y filtrado de la tabla para simular un dashboard conectado.
 
-        document.addEventListener("DOMContentLoaded", loadInventory);
-
-        function loadInventory() {
-            const grid = document.getElementById('inventoryGrid');
-            grid.innerHTML = "<p>Cargando datos...</p>";
-
-            fetch(SCRIPT_URL)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById('totalCount').textContent = data.length;
-                    grid.innerHTML = "";
-
-                    if (!data || data.length === 0) {
-                        grid.innerHTML = "<p>No hay equipos registrados aún.</p>";
-                        return;
-                    }
-
-                    data.reverse().forEach(item => {
-                        const badgeClass = getBadgeClass(item.estado);
-                        const imageHtml = (item.foto_url && item.foto_url.startsWith('http'))
-                            ? `<img class="card-img" src="${item.foto_url}" alt="${item.marca_modelo}" loading="lazy">`
-                            : `<div class="card-img">Sin fotografía</div>`;
-
-                        grid.innerHTML += `
-            <div class="card">
-              ${imageHtml}
-              <div class="card-body">
-                <div class="card-title">${item.id_equipo}</div>
-                <div class="card-subtitle">${item.marca_modelo}</div>
-                <span class="badge ${badgeClass}">${item.estado}</span>
-                <div class="card-detail"><strong>S/N:</strong> ${item.numero_serie}</div>
-                <div class="card-detail"><strong>Resp:</strong> ${item.responsable || 'N/A'}</div>
-                <div class="card-detail"><strong>Ubicación:</strong> ${item.ubicacion || 'N/A'}</div>
-              </div>
-            </div>
-          `;
-                    });
-                })
-                .catch(err => {
-                    console.error("Error al cargar:", err);
-                    grid.innerHTML = "<p>Error al cargar el inventario. Revisa la consola (F12).</p>";
-                });
-        }
-
-        function getBadgeClass(estado) {
-            switch (estado) {
-                case 'Operativo': return 'badge-Operativo';
-                case 'Baja': return 'badge-Baja';
-                case 'Obsoleto': return 'badge-Obsoleto';
-                case 'Asignado': return 'badge-Asignado';
-                default: return '';
-            }
-        }
-
-        document.getElementById('equipmentForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const btnSubmit = document.getElementById('btnSubmit');
-            btnSubmit.disabled = true;
-            btnSubmit.textContent = "Guardando...";
-
-            const fileInput = document.getElementById('foto');
-            const file = fileInput.files[0];
-
-            if (file) {
-                // Redimensionar imagen para asegurar que el envio sea ligero
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = function () {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 800;
-                        const scaleFactor = MAX_WIDTH / img.width;
-
-                        if (scaleFactor < 1) {
-                            canvas.width = MAX_WIDTH;
-                            canvas.height = img.height * scaleFactor;
-                        } else {
-                            canvas.width = img.width;
-                            canvas.height = img.height;
-                        }
-
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        const resizedBase64 = canvas.toDataURL('image/jpeg', 0.7); // Compresión al 70%
-
-                        sendData(resizedBase64, file.name);
-                    };
-                };
-                reader.readAsDataURL(file);
-            } else {
-                sendData("", "");
-            }
-        });
-
-        function sendData(fotoBase64, fotoNombre) {
-            const payload = {
-                id_equipo: document.getElementById('id_equipo').value,
-                tipo_equipo: document.getElementById('tipo_equipo').value,
-                marca_modelo: document.getElementById('marca_modelo').value,
-                numero_serie: document.getElementById('numero_serie').value,
-                estado: document.getElementById('estado').value,
-                responsable: document.getElementById('responsable').value,
-                ubicacion: document.getElementById('ubicacion').value,
-                foto_base64: fotoBase64,
-                foto_nombre: fotoNombre
-            };
-
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            })
-                .then(res => res.json())
-                .then(res => {
-                    if (res.status === "success") {
-                        document.getElementById('equipmentForm').reset();
-                        alert("¡Equipo guardado con éxito!");
-                        loadInventory();
-                    } else {
-                        alert("Error reportado por el servidor: " + res.message);
-                    }
-                })
-                .catch(err => {
-                    console.error("Error al enviar:", err);
-                    // Fallback: Si el navegador bloquea la lectura del JSON de respuesta por CORS, reintentamos recargar la lista
-                    setTimeout(() => {
-                        document.getElementById('equipmentForm').reset();
-                        loadInventory();
-                    }, 1500);
-                })
-                .finally(() => {
-                    const btnSubmit = document.getElementById('btnSubmit');
-                    btnSubmit.disabled = false;
-                    btnSubmit.textContent = "Guardar Equipo";
-                });
-        }
+        const title = document.querySelector('#view-title');
+        document.querySelectorAll('nav button').forEach(button => button.addEventListener('click', () => {
+            document.querySelectorAll('nav button').forEach(item => item.classList.remove('active'));
+            button.classList.add('active'); title.textContent = button.dataset.view;
+        }));
+        const tableSearch = document.querySelector('#table-search');
+        const rows = [...document.querySelectorAll('#product-list tr')];
+        const empty = document.querySelector('#empty');
+        tableSearch.addEventListener('input', event => { const query = event.target.value.toLowerCase(); let visible = 0; rows.forEach(row => { const match = row.textContent.toLowerCase().includes(query); row.style.display = match ? '' : 'none'; if (match) visible++; }); empty.style.display = visible ? 'none' : 'block'; });
+        document.querySelector('#global-search').addEventListener('input', event => { if (event.target.value) tableSearch.value = event.target.value; tableSearch.dispatchEvent(new Event('input')); });
     </script>
 </body>
 
